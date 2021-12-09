@@ -1,0 +1,20 @@
+{
+  "name": "acebase-ipc-server",
+  "version": "1.0.0",
+  "description": "IPC Server that provides communication between isolated AceBase processes using the same database files, such as local pm2 and cloud-based clusters.",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "tsc && node dist/start.js dbname=mydb port=9163 max_payload=50"
+  },
+  "author": "Ewout Stortenbeker <me@appy.one> (http://appy.one)",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^16.11.11",
+    "@types/ws": "^8.2.2"
+  },
+  "dependencies": {
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.3.0",
+    "ws": "^8.3.0"
+  },
+  "keywords": ["acebase","ipc"]
+}
