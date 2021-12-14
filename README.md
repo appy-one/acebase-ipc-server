@@ -49,7 +49,7 @@ In a *pm2 cluster* that means you have to:
 
 In a *cloud-based cluster* you will always have to run 1 dedicated `master` process, all `worker` processes can run in a cluster.
 
-Configuring an *AceBase* or *AceBaseServer* instance to use an IPC server is very easy, all you have to do add an `ipc` configuration property to AceBase's `storage` settings:
+Configuring an *AceBase* or *AceBaseServer* instance to use an IPC server is very easy, all you have to do add an `ipc` configuration property to AceBaseServer's settings, (or AceBase's `storage` settings):
 ```js
 const ipcConfig = {
     port: 9163,
@@ -60,7 +60,7 @@ const ipcConfig = {
     // ssl: true, 
     // token: 'my_secret_access_token'
 };
-const server = new AceBaseServer('mydb', { storage: { ipc: ipcConfig }});
+const server = new AceBaseServer('mydb', { ipc: ipcConfig });
 ```
 
 ## pm2 cluster example 1
@@ -69,8 +69,14 @@ This is the recommended setup for starting an *AceBaseServer* in a *pm2 cluster*
 
 *Install dependencies*:
 ```sh
-npm i acebase-ipc-server acebase-server
+# IPC Server:
+npm install acebase-ipc-server
+# AceBaseServer instances:
+npm install acebase-server
+npm install ws
 ```
+
+The `ws` dependency is required by AceBase for websocket communication
 
 *ecosystem.config.js*:
 ```js
@@ -105,14 +111,14 @@ const { AceBase } = require('acebase');
 const db = new AceBase('mydb', { storage: { ipc: { port: 9163, role: 'master' } } });
 db.ready(() => {
     process.send('ready'); // Signal pm2 it's running
-})
+});
 ```
 
 *start-db-server.js*:
 ```js
 // Start a database server with worker role
 const { AceBaseServer } = require('acebase-server');
-const server = new AceBaseServer('mydb', { host: 'localhost', port: 5757, storage: { ipc: { port: 9163, role: 'worker' } } });
+const server = new AceBaseServer('mydb', { host: 'localhost', port: 5757, ipc: { port: 9163, role: 'worker' } });
 ```
 
 ## pm2 cluster example 2
@@ -120,7 +126,11 @@ Instead of starting a dedicated db `master` process shown above, you can also st
 
 *Install dependencies*:
 ```sh
-npm i acebase-ipc-server acebase-server
+# IPC Server:
+npm install acebase-ipc-server
+# AceBaseServer instances:
+npm install acebase-server
+npm install ws
 ```
 
 *ecosystem.config.js*:
@@ -148,8 +158,8 @@ server.start();
 *start-db-server.js*:
 ```js
 const { AceBaseServer } = require('acebase-server');
-const role = process.env.NODE_INSTANCE_ID === '0' ? 'master' : 'worker'
-const server = new AceBaseServer('mydb', { host: 'localhost', port: 5757, storage: { ipc: { port: 9163, role } } });
+const role = process.env.NODE_INSTANCE_ID === '0' ? 'master' : 'worker';
+const server = new AceBaseServer('mydb', { host: 'localhost', port: 5757, ipc: { port: 9163, role } });
 ```
 
 ## Cloud-based clusters
@@ -168,7 +178,7 @@ If you do have to restart your AceBaseServer processes (eg if you've updated the
 2. `master` process
 3. IPC Server
 
-The startup sequence of the processes doesn't matter
+The startup sequence of the processes does not matter.
 
 ## Standard Node.js clusters
 If you do not use *pm2* and are running (or want to run) a standard Node.js cluster, *AceBase* will already be able to communicate between the processes because it can use Node.js's built-in IPC channels between master and worker processes. Processes in a *pm2* cluster can't use this IPC channel because *pm2* itself is the master.
@@ -188,7 +198,7 @@ if (cluster.isMaster) {
     const db = new AceBase('mydb');
 
     // OR, if you want the master process to also accept remote http connections:
-    // const server = new AceBaseServer('mydb', { port: SERVER_PORT, ... });
+    // const server = new AceBaseServer('mydb', { port: SERVER_PORT /*, ...*/ });
 
     // Start a worker for each available CPU (minus 1)
     const workers = cpus.length - 1;
